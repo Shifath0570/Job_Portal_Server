@@ -40,6 +40,18 @@ async function run() {
       }
     });
 
+    app.get('/api/jobs', async (req, res) => {
+      try {
+        const jobs = await jobCollection.find().toArray();
+        res.status(200).send(jobs);
+      } catch (error) {
+        res.status(500).send({
+          message: "Failed to fetch jobs",
+          error: error.message
+        });
+      }
+    });
+
     app.put('/api/company/profile', async (req, res) => {
       try {
         const profileData = req.body;
@@ -47,11 +59,11 @@ async function run() {
         // Upsert operation: Updates existing profile or inserts a new one
         const result = await companyCollection.updateOne(
           { identifier: "company_profile_main" }, // Unique identifier to keep a single profile document
-          { 
+          {
             $set: {
               ...profileData,
               updatedAt: new Date().toISOString()
-            } 
+            }
           },
           { upsert: true }
         );
@@ -63,51 +75,13 @@ async function run() {
         });
       } catch (error) {
         console.error("PUT Error:", error);
-        res.status(500).send({ 
-          success: false, 
-          message: "Error updating company profile", 
-          error: error.message 
+        res.status(500).send({
+          success: false,
+          message: "Error updating company profile",
+          error: error.message
         });
       }
     });
-
-
-    // app.get('/api/books', async (req, res) => {
-    //   const result = await booksCollection.find().toArray();
-    //   res.send(result);
-    // })
-
-
-    // app.get('/api/books/:id', async (req, res) => {
-    //   const {id} = req.params;
-    //   const result = await booksCollection.findOne({_id: new ObjectId(id)})
-    //   res.send(result);
-    // })
-
-
-    // app.patch("/updateBook/:id", async (req, res)=>{
-    //   const {id} = req.params
-    //   const updateData = req.body
-
-    //   const result = await booksCollection.updateOne(
-    //     {_id: new ObjectId(id)},
-    //     {$set: updateData}
-    //   )
-    //   res.send(result)
-    // })
-
-
-    // app.delete("/UserDelete/:id", async(req, res)=>{
-    //   const {id} = req.params;
-    //   const result = await userCollection.deleteOne({_id: new ObjectId(id)})
-    //   res.send(result)
-    // })
-
-
-
-
-
-
 
 
 
