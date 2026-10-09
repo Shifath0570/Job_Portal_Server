@@ -52,18 +52,27 @@ async function run() {
       }
     });
 
-    app.put('/api/company/profile', async (req, res) => {
+    app.put('/api/company/profile/:email', async (req, res) => {
       try {
+        const { email } = req.params;
         const profileData = req.body;
 
-        // Upsert operation: Updates existing profile or inserts a new one
+        if (!profileData || Object.keys(profileData).length === 0) {
+          return res.status(400).send({
+            success: false,
+            message: "Request body cannot be empty",
+          });
+        }
+
+        // Upsert operation: Updates existing profile matching the email or inserts a new one
         const result = await companyCollection.updateOne(
-          { identifier: "company_profile_main" }, // Unique identifier to keep a single profile document
+          { email }, // Filter by the target company email route parameter
           {
             $set: {
               ...profileData,
-              updatedAt: new Date().toISOString()
-            }
+              email,
+              updatedAt: new Date().toISOString(),
+            },
           },
           { upsert: true }
         );
@@ -71,14 +80,47 @@ async function run() {
         res.status(200).send({
           success: true,
           message: "Company profile updated successfully!",
-          result
+          result,
         });
       } catch (error) {
         console.error("PUT Error:", error);
         res.status(500).send({
           success: false,
           message: "Error updating company profile",
-          error: error.message
+          error: error.message,
+        });
+      }
+    });
+
+
+    app.get('/api/company/profile/:email', async (req, res) => {
+      try {
+        const { email } = req.params;
+
+        if (!email) {
+          return res.status(400).send({
+            success: false,
+            message: "Email parameter is required",
+          });
+        }
+
+        // Find the company profile document matching the user's email
+        const result = await companyCollection.findOne({ email });
+
+        if (!result) {
+          return res.status(404).send({
+            success: false,
+            message: "Company profile not found",
+          });
+        }
+
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("GET Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching company profile",
+          error: error.message,
         });
       }
     });
