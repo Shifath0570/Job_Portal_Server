@@ -52,6 +52,40 @@ async function run() {
       }
     });
 
+
+
+    app.get('/api/jobs/company/:email', async (req, res) => {
+      try {
+        const { email } = req.params;
+
+        if (!email) {
+          return res.status(400).send({
+            success: false,
+            message: "Email parameter is required",
+          });
+        }
+
+        // Find all jobs posted under companyEmail
+        const jobs = await jobCollection.find({ companyEmail: email }).toArray();
+
+        res.status(200).send(jobs);
+      } catch (error) {
+        console.error("GET Company Jobs Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching company jobs",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
+
+
+
+
     app.put('/api/company/profile/:email', async (req, res) => {
       try {
         const { email } = req.params;
