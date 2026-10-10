@@ -28,6 +28,7 @@ async function run() {
     const db = client.db(process.env.MONGO_DB_NAME)
     const jobCollection = db.collection('jobs')
     const companyCollection = db.collection('company')
+    const seekerCollection = db.collection('seeker')
 
 
     app.post('/api/jobs', async (req, res) => {
@@ -158,6 +159,40 @@ async function run() {
         });
       }
     });
+
+
+
+    app.put('/api/seeker/profile/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { _id, ...cleanData } = req.body;
+
+    const result = await seekerCollection.updateOne(
+      { email },
+      { 
+        $set: { 
+          ...cleanData, 
+          email, 
+          updatedAt: new Date().toISOString() 
+        } 
+      },
+      { upsert: true }
+    );
+
+    res.status(200).send({ 
+      success: true, 
+      message: "Seeker profile updated successfully!", 
+      result 
+    });
+  } catch (error) {
+    console.error("PUT Profile Error:", error);
+    res.status(500).send({ 
+      success: false, 
+      message: "Error updating seeker profile", 
+      error: error.message 
+    });
+  }
+});
 
 
 
