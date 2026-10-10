@@ -161,38 +161,49 @@ async function run() {
     });
 
 
-
     app.put('/api/seeker/profile/:email', async (req, res) => {
       try {
         const { email } = req.params;
-        const { _id, ...cleanData } = req.body;
+        const profileData = req.body;
 
+        if (!profileData || Object.keys(profileData).length === 0) {
+          return res.status(400).send({
+            success: false,
+            message: "Request body cannot be empty",
+          });
+        }
+
+        // Strip out _id if present to prevent MongoDB immutable field modification errors
+        const { _id, ...cleanData } = profileData;
+
+        // Upsert operation: Updates existing profile matching the email or inserts a new one
         const result = await seekerCollection.updateOne(
           { email },
           {
             $set: {
               ...cleanData,
               email,
-              updatedAt: new Date().toISOString()
-            }
+              updatedAt: new Date().toISOString(),
+            },
           },
           { upsert: true }
         );
 
         res.status(200).send({
           success: true,
-          message: "Seeker profile updated successfully!",
-          result
+          message: "Seeker profile and resume updated successfully!",
+          result,
         });
       } catch (error) {
-        console.error("PUT Profile Error:", error);
+        console.error("PUT Seeker Profile Error:", error);
         res.status(500).send({
           success: false,
           message: "Error updating seeker profile",
-          error: error.message
+          error: error.message,
         });
       }
     });
+
 
 
     app.get('/api/seeker/profile/:email', async (req, res) => {
