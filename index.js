@@ -163,36 +163,72 @@ async function run() {
 
 
     app.put('/api/seeker/profile/:email', async (req, res) => {
-  try {
-    const { email } = req.params;
-    const { _id, ...cleanData } = req.body;
+      try {
+        const { email } = req.params;
+        const { _id, ...cleanData } = req.body;
 
-    const result = await seekerCollection.updateOne(
-      { email },
-      { 
-        $set: { 
-          ...cleanData, 
-          email, 
-          updatedAt: new Date().toISOString() 
-        } 
-      },
-      { upsert: true }
-    );
+        const result = await seekerCollection.updateOne(
+          { email },
+          {
+            $set: {
+              ...cleanData,
+              email,
+              updatedAt: new Date().toISOString()
+            }
+          },
+          { upsert: true }
+        );
 
-    res.status(200).send({ 
-      success: true, 
-      message: "Seeker profile updated successfully!", 
-      result 
+        res.status(200).send({
+          success: true,
+          message: "Seeker profile updated successfully!",
+          result
+        });
+      } catch (error) {
+        console.error("PUT Profile Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error updating seeker profile",
+          error: error.message
+        });
+      }
     });
-  } catch (error) {
-    console.error("PUT Profile Error:", error);
-    res.status(500).send({ 
-      success: false, 
-      message: "Error updating seeker profile", 
-      error: error.message 
+
+
+    app.get('/api/seeker/profile/:email', async (req, res) => {
+      try {
+        const { email } = req.params;
+
+        if (!email) {
+          return res.status(400).send({
+            success: false,
+            message: "Email parameter is required",
+          });
+        }
+
+        // Find the seeker profile document matching the user's email
+        const result = await seekerCollection.findOne({ email });
+
+        if (!result) {
+          return res.status(404).send({
+            success: false,
+            message: "Seeker profile not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          ...result,
+        });
+      } catch (error) {
+        console.error("GET Seeker Profile Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching seeker profile",
+          error: error.message,
+        });
+      }
     });
-  }
-});
 
 
 
