@@ -29,6 +29,7 @@ async function run() {
     const jobCollection = db.collection('jobs')
     const companyCollection = db.collection('company')
     const seekerCollection = db.collection('seeker')
+    const savejobCollection = db.collection('saveJob')
 
 
     app.post('/api/jobs', async (req, res) => {
@@ -267,6 +268,89 @@ async function run() {
         res.status(500).send({
           success: false,
           message: "Error fetching seeker profile",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+    app.post('/api/savejob', async (req, res) => {
+      try {
+        const jobData = req.body;
+        const { userEmail } = jobData;
+        const jobId = jobData._id || jobData.id || jobData.originalJobId;
+
+        if (!userEmail) {
+          return res.status(400).send({
+            success: false,
+            message: "User email is required to save a job",
+          });
+        }
+
+        if (!jobId) {
+          return res.status(400).send({
+            success: false,
+            message: "Job ID is required",
+          });
+        }
+
+        // Check if the user has already saved this job to prevent duplicates
+        const existingSave = await savejobCollection.findOne({
+          userEmail: userEmail,
+          $or: [{ _id: jobId }, { id: jobId }, { originalJobId: jobId }],
+        });
+
+        if (existingSave) {
+          return res.status(200).send({
+            success: true,
+            message: "Job is already saved in your dashboard",
+            data: existingSave,
+          });
+        }
+
+        // Remove client-side _id if it's causing duplicate key collisions, 
+        // letting MongoDB generate a clean unique _id for the saved collection record.
+        const { _id, ...cleanJobData } = jobData;
+
+        const result = await savejobCollection.insertOne({
+          ...cleanJobData,
+          id: jobId,
+        });
+
+        res.status(201).send({
+          success: true,
+          message: "Job saved successfully",
+          result,
+        });
+      } catch (error) {
+        console.error("Save Job Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to save job",
+          error: error.message,
+        });
+      }
+    });
+
+
+    app.get('/api/savejob', async (req, res) => {
+      try {
+        const { email } = req.query;
+
+        const query = email ? { userEmail: email } : {};
+        const savedJobs = await savejobCollection.find(query).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: savedJobs.length,
+          jobs: savedJobs,
+        });
+      } catch (error) {
+        console.error("Get Saved Jobs Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to fetch saved jobs",
           error: error.message,
         });
       }
