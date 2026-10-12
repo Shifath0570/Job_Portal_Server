@@ -30,6 +30,7 @@ async function run() {
     const companyCollection = db.collection('company')
     const seekerCollection = db.collection('seeker')
     const savejobCollection = db.collection('saveJob')
+    const applicationCollection = db.collection('applications')
 
 
     app.post('/api/jobs', async (req, res) => {
@@ -353,6 +354,20 @@ async function run() {
           message: "Failed to fetch saved jobs",
           error: error.message,
         });
+      }
+    });
+
+
+
+    app.post('/api/applications', async (req, res) => {
+      try {
+        const result = await applicationCollection.insertOne({
+          ...req.body,
+          createdAt: new Date(),
+        });
+        res.status(201).send({ success: true, insertedId: result.insertedId });
+      } catch (error) {
+        res.status(500).send({ success: false, error: error.message });
       }
     });
 
