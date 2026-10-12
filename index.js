@@ -373,6 +373,43 @@ async function run() {
 
 
 
+    app.get('/api/applications/:applicantEmail', async (req, res) => {
+      try {
+        const { applicantEmail } = req.params;
+
+        if (!applicantEmail) {
+          return res.status(400).send({
+            success: false,
+            message: "Applicant email parameter is required",
+          });
+        }
+
+        const query = {};
+
+        // If the param is not "all", filter applications by applicantEmail case-insensitively
+        if (applicantEmail.toLowerCase() !== "all") {
+          query.applicantEmail = { $regex: new RegExp(`^${applicantEmail}$`, "i") };
+        }
+
+        const applications = await applicationCollection.find(query).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: applications.length,
+          applications,
+        });
+      } catch (error) {
+        console.error("GET Applications Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching applications",
+          error: error.message,
+        });
+      }
+    });
+
+
+
 
 
 
