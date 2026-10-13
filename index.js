@@ -410,6 +410,50 @@ async function run() {
 
 
 
+    app.delete('/api/savejob', async (req, res) => {
+      try {
+        const { id, email } = req.query;
+
+        if (!id || !email) {
+          return res.status(400).json({
+            success: false,
+            message: "Job ID and user email are required for deletion."
+          });
+        }
+
+        const query = {
+          userEmail: email,
+          $or: [
+            { id: id },
+            { _id: id }
+          ]
+        };
+
+        const result = await savejobCollection.deleteOne(query);
+
+        if (result.deletedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Saved job not found or unauthorized."
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Saved job removed successfully."
+        });
+      } catch (error) {
+        console.error("Delete Saved Job Error:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to delete saved job",
+          error: error.message,
+        });
+      }
+    });
+
+
+
 
 
 
