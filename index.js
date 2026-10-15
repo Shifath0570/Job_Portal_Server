@@ -409,6 +409,42 @@ async function run() {
     });
 
 
+    app.get('/api/applicants/:jobEmail', async (req, res) => {
+      try {
+        const { jobEmail } = req.params;
+
+        if (!jobEmail) {
+          return res.status(400).json({
+            success: false,
+            message: "Applicant email parameter is required",
+          });
+        }
+
+        const query = {};
+
+        // If not "all", filter case-insensitively and safely (ReDoS protected)
+        if (jobEmail.toLowerCase() !== "all") {
+          const escapedEmail = jobEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          query.jobEmail = { $regex: new RegExp(`^${escapedEmail}$`, "i") };
+        }
+
+        const applications = await applicationCollection.find(query).toArray();
+
+        return res.status(200).json({
+          success: true,
+          count: applications.length,
+          applications,
+        });
+      } catch (error) {
+        console.error("GET Applicants Error:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Error fetching applications",
+          error: error.message,
+        });
+      }
+    });
+
 
     app.delete('/api/savejob', async (req, res) => {
       try {
