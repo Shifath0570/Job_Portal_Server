@@ -194,6 +194,35 @@ async function run() {
     });
 
 
+
+
+
+    app.get('/api/company/all', async (req, res) => {
+      try {
+        const companies = await companyCollection.find({}).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: companies.length,
+          data: companies,
+        });
+      } catch (error) {
+        console.error("GET All Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching all company profiles",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
+
+
+
+
     app.put('/api/seeker/profile/:email', async (req, res) => {
       try {
         const { email } = req.params;
