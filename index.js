@@ -31,7 +31,29 @@ async function run() {
     const seekerCollection = db.collection('seeker')
     const savejobCollection = db.collection('saveJob')
     const applicationCollection = db.collection('applications')
+    const userCollection = db.collection('user')
 
+
+
+
+    app.get('/api/users', async (req, res) => {
+      try {
+        const users = await userCollection.find({}).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: users.length,
+          users,
+        });
+      } catch (error) {
+        console.error("GET Users Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to fetch users",
+          error: error.message,
+        });
+      }
+    });
 
     app.post('/api/jobs', async (req, res) => {
       try {
