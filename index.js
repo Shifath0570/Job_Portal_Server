@@ -241,10 +241,6 @@ async function run() {
 
 
 
-
-
-
-
     app.put('/api/seeker/profile/:email', async (req, res) => {
       try {
         const { email } = req.params;
@@ -283,6 +279,26 @@ async function run() {
         res.status(500).send({
           success: false,
           message: "Error updating seeker profile",
+          error: error.message,
+        });
+      }
+    });
+
+
+    app.get('/api/seeker/all', async (req, res) => {
+      try {
+        const seekers = await seekerCollection.find({}).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: seekers.length,
+          data: seekers,
+        });
+      } catch (error) {
+        console.error("GET All Seekers Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching all job seekers",
           error: error.message,
         });
       }
