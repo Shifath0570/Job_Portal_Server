@@ -439,6 +439,26 @@ async function run() {
     });
 
 
+    app.get('/api/application/all', async (req, res) => {
+      try {
+        const applications = await applicationCollection.find({}).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: applications.length,
+          data: applications,
+        });
+      } catch (error) {
+        console.error("GET All Applications Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching all job applications",
+          error: error.message,
+        });
+      }
+    });
+
+
 
     app.get('/api/applications/:applicantEmail', async (req, res) => {
       try {
