@@ -1,7 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 dotenv.config();
 
 const uri = process.env.MONGO_DB_URI;
@@ -77,6 +77,44 @@ async function run() {
       }
     });
 
+
+    app.delete('/api/jobs/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        // Validate if the provided ID is a valid MongoDB ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({
+            success: false,
+            message: "Invalid job ID format",
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const result = await jobCollection.deleteOne(query);
+
+        // Check if the job actually existed in the database
+        if (result.deletedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "Job not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          message: "Job deleted successfully",
+          deletedCount: result.deletedCount,
+        });
+      } catch (error) {
+        console.error("DELETE Job Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to delete job",
+          error: error.message,
+        });
+      }
+    });
 
     app.get('/api/jobs/:status', async (req, res) => {
       try {
