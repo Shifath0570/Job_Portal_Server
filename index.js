@@ -151,6 +151,57 @@ async function run() {
     });
 
 
+    app.patch('/api/jobs/:id/status', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { status } = req.body; // Expects { status: "Active" } or { status: "Closed" }
+
+        // Validate ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({
+            success: false,
+            message: "Invalid job ID format",
+          });
+        }
+
+        // Validate status value
+        if (!status || !["Active", "Closed"].includes(status)) {
+          return res.status(400).send({
+            success: false,
+            message: "Valid status ('Active' or 'Closed') is required in request body",
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: { status: status },
+        };
+
+        const result = await jobCollection.updateOne(query, updateDoc);
+
+        if (result.matchedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "Job not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          message: `Job status updated to ${status} successfully`,
+          modifiedCount: result.modifiedCount,
+        });
+      } catch (error) {
+        console.error("Update Job Status Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to update job status",
+          error: error.message,
+        });
+      }
+    });
+
+
 
     app.get('/api/jobs/company/:email', async (req, res) => {
       try {
