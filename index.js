@@ -55,6 +55,45 @@ async function run() {
       }
     });
 
+    app.delete('/api/users/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        // Validate if the provided ID is a valid MongoDB ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({
+            success: false,
+            message: "Invalid user ID format",
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const result = await userCollection.deleteOne(query);
+
+        // Check if the user actually existed in the database
+        if (result.deletedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "User not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          message: "User deleted successfully",
+          deletedCount: result.deletedCount,
+        });
+      } catch (error) {
+        console.error("DELETE User Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to delete user",
+          error: error.message,
+        });
+      }
+    });
+
+
     app.post('/api/jobs', async (req, res) => {
       try {
         const job = req.body;
