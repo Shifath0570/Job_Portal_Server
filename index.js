@@ -155,6 +155,9 @@ async function run() {
       }
     });
 
+
+
+
     app.get('/api/jobs/:status', async (req, res) => {
       try {
         const { status } = req.params;
@@ -361,6 +364,47 @@ async function run() {
         res.status(500).send({
           success: false,
           message: "Error fetching all company profiles",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
+    app.delete('/api/company/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        // Validate if the provided ID is a valid MongoDB ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({
+            success: false,
+            message: "Invalid company ID format",
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const result = await companyCollection.deleteOne(query);
+
+        // Check if the company actually existed in the database
+        if (result.deletedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "Company profile not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          message: "Company profile deleted successfully",
+          deletedCount: result.deletedCount,
+        });
+      } catch (error) {
+        console.error("DELETE Company Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to delete company profile",
           error: error.message,
         });
       }
