@@ -478,6 +478,47 @@ async function run() {
 
 
 
+
+    app.delete('/api/seeker/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        // Validate if the provided ID is a valid MongoDB ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({
+            success: false,
+            message: "Invalid job seeker ID format",
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const result = await seekerCollection.deleteOne(query);
+
+        // Check if the seeker actually existed in the database
+        if (result.deletedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "Job seeker profile not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          message: "Job seeker profile deleted successfully",
+          deletedCount: result.deletedCount,
+        });
+      } catch (error) {
+        console.error("DELETE Seeker Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to delete job seeker profile",
+          error: error.message,
+        });
+      }
+    });
+
+
+
     app.get('/api/seeker/profile/:email', async (req, res) => {
       try {
         const { email } = req.params;
