@@ -673,6 +673,47 @@ async function run() {
 
 
 
+
+    app.delete('/api/application/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        // Validate if the provided ID is a valid MongoDB ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({
+            success: false,
+            message: "Invalid application ID format",
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const result = await applicationCollection.deleteOne(query);
+
+        // Check if the application actually existed in the database
+        if (result.deletedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "Job application not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          message: "Job application deleted successfully",
+          deletedCount: result.deletedCount,
+        });
+      } catch (error) {
+        console.error("DELETE Application Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to delete job application",
+          error: error.message,
+        });
+      }
+    });
+
+
+
     app.get('/api/applications/:applicantEmail', async (req, res) => {
       try {
         const { applicantEmail } = req.params;
