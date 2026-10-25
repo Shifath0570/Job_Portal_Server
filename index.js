@@ -55,6 +55,60 @@ async function run() {
       }
     });
 
+
+
+
+    app.put('/api/users/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { name, email, role, status } = req.body;
+
+        // Validate if the provided ID is a valid MongoDB ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({
+            success: false,
+            message: "Invalid user ID format",
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            ...(name && { name }),
+            ...(email && { email }),
+            ...(role && { role }),
+            ...(status && { status }),
+            updatedAt: new Date(),
+          },
+        };
+
+        const result = await userCollection.updateOne(query, updateDoc);
+
+        if (result.matchedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "User not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          message: "User profile updated successfully",
+          modifiedCount: result.modifiedCount,
+        });
+      } catch (error) {
+        console.error("UPDATE User Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to update user profile",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
     app.delete('/api/users/:id', async (req, res) => {
       try {
         const { id } = req.params;
@@ -92,6 +146,8 @@ async function run() {
         });
       }
     });
+
+
 
 
     app.post('/api/jobs', async (req, res) => {
