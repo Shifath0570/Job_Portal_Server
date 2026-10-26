@@ -732,48 +732,48 @@ async function run() {
 
 
     app.patch("/api/applicants/:applicantId/status", async (req, res) => {
-  try {
-    const { applicantId } = req.params;
-    const { status } = req.body;
+      try {
+        const { applicantId } = req.params;
+        const { status } = req.body;
 
-    // Validate if the ID is a valid MongoDB ObjectId
-    if (!ObjectId.isValid(applicantId)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid applicant ID format" 
-      });
-    }
+        // Validate if the ID is a valid MongoDB ObjectId
+        if (!ObjectId.isValid(applicantId)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid applicant ID format"
+          });
+        }
 
-    // Update the status in the database
-    const result = await applicationCollection.updateOne(
-      { _id: new ObjectId(applicantId) },
-      { 
-        $set: { 
-          status: status, 
-          updatedAt: new Date() 
-        } 
+        // Update the status in the database
+        const result = await applicationCollection.updateOne(
+          { _id: new ObjectId(applicantId) },
+          {
+            $set: {
+              status: status,
+              updatedAt: new Date()
+            }
+          }
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Applicant not found"
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Application status updated successfully"
+        });
+      } catch (error) {
+        console.error("Error updating applicant status:", error);
+        res.status(500).json({
+          success: false,
+          error: error.message
+        });
       }
-    );
-
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Applicant not found" 
-      });
-    }
-
-    res.status(200).json({ 
-      success: true, 
-      message: "Application status updated successfully" 
     });
-  } catch (error) {
-    console.error("Error updating applicant status:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
 
 
 
@@ -886,6 +886,47 @@ async function run() {
           success: false,
           message: "Error fetching applications",
           error: error.message,
+        });
+      }
+    });
+
+
+    app.delete("/api/applicants/:applicantId", async (req, res) => {
+      try {
+        const { applicantId } = req.params;
+        const { jobEmail } = req.query; // retrieved from query parameters
+
+        if (!ObjectId.isValid(applicantId)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid applicant ID format"
+          });
+        }
+
+        // Build query to match ID and optionally jobEmail if provided
+        const query = { _id: new ObjectId(applicantId) };
+        if (jobEmail) {
+          query.jobEmail = jobEmail;
+        }
+
+        const result = await applicationCollection.deleteOne(query);
+
+        if (result.deletedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Applicant not found or unauthorized"
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Applicant deleted successfully"
+        });
+      } catch (error) {
+        console.error("Error deleting applicant:", error);
+        res.status(500).json({
+          success: false,
+          error: error.message
         });
       }
     });
