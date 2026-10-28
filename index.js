@@ -1018,6 +1018,40 @@ async function run() {
 
 
 
+    app.get('/api/interviews/:email', async (req, res) => {
+      try {
+        const { email } = req.params;
+        let query = {};
+
+        if (email && email !== "all") {
+          query = {
+            $or: [
+              { applicantEmail: email },
+              { candidateEmail: email },
+              { email: email }
+            ]
+          };
+        }
+
+        const interviews = await InterviewCollection.find(query).toArray();
+
+        res.status(200).json({
+          success: true,
+          count: interviews.length,
+          interviews
+        });
+      } catch (error) {
+        console.error("Error fetching interviews:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch interviews",
+          error: error.message
+        });
+      }
+    });
+
+
+
 
 
 
