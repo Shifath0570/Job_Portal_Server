@@ -32,7 +32,7 @@ async function run() {
     const savejobCollection = db.collection('saveJob')
     const applicationCollection = db.collection('applications')
     const userCollection = db.collection('user')
-
+    const InterviewCollection = db.collection('interviews')
 
 
 
@@ -160,6 +160,9 @@ async function run() {
       }
     });
 
+
+
+
     app.get('/api/jobs', async (req, res) => {
       try {
         const jobs = await jobCollection.find().toArray();
@@ -171,6 +174,9 @@ async function run() {
         });
       }
     });
+
+
+
 
 
     app.delete('/api/jobs/:id', async (req, res) => {
@@ -970,6 +976,40 @@ async function run() {
           success: false,
           message: "Failed to delete saved job",
           error: error.message,
+        });
+      }
+    });
+
+
+
+
+
+    app.post('/api/interviews', async (req, res) => {
+      try {
+        const interview = req.body;
+
+        // Basic validation to ensure data exists
+        if (!interview || Object.keys(interview).length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Request body cannot be empty"
+          });
+        }
+
+        const result = await InterviewCollection.insertOne(interview);
+
+        res.status(201).json({
+          success: true,
+          message: "Interview scheduled successfully",
+          insertedId: result.insertedId,
+          result
+        });
+      } catch (error) {
+        console.error("Error creating interview:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to create interview",
+          error: error.message
         });
       }
     });
