@@ -1053,6 +1053,58 @@ async function run() {
 
 
 
+
+    app.patch('/api/interviews/:id/status', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid interview ID format"
+          });
+        }
+
+        if (!status) {
+          return res.status(400).json({
+            success: false,
+            message: "Status field is required"
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const updateDoc = { $set: { status } };
+        const result = await InterviewCollection.updateOne(query, updateDoc);
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Interview not found"
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Interview status updated successfully",
+          result
+        });
+      } catch (error) {
+        console.error("Error updating interview status:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to update interview status",
+          error: error.message
+        });
+      }
+    });
+
+
+
+
+
+
+
     // DELETE: Remove an interview by ID
     app.delete('/api/interviews/:id', async (req, res) => {
       try {
