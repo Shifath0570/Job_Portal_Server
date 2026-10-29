@@ -1053,6 +1053,46 @@ async function run() {
 
 
 
+    // DELETE: Remove an interview by ID
+    app.delete('/api/interviews/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid interview ID format"
+          });
+        }
+
+        const query = { _id: new ObjectId(id) };
+        const result = await InterviewCollection.deleteOne(query);
+
+        if (result.deletedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Interview not found"
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Interview deleted successfully",
+          result
+        });
+      } catch (error) {
+        console.error("Error deleting interview:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to delete interview",
+          error: error.message
+        });
+      }
+    });
+
+
+
+
 
 
 
