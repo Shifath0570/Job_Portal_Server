@@ -1147,6 +1147,47 @@ async function run() {
 
 
 
+    app.post('/api/blogs', async (req, res) => {
+      try {
+        const blogData = req.body;
+
+        // Validate required fields
+        if (!blogData.title || !blogData.content) {
+          return res.status(400).json({
+            success: false,
+            message: "Article title and content are required."
+          });
+        }
+
+        // Attach server-side timestamps
+        const newBlog = {
+          ...blogData,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const result = await BlogCollection.insertOne(newBlog);
+
+        res.status(201).json({
+          success: true,
+          message: "Blog post created successfully!",
+          insertedId: result.insertedId,
+          data: newBlog
+        });
+      } catch (error) {
+        console.error("Error creating blog post:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to create blog post",
+          error: error.message
+        });
+      }
+    });
+
+
+
+
+
 
 
 
