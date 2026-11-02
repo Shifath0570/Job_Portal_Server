@@ -33,6 +33,7 @@ async function run() {
     const applicationCollection = db.collection('applications')
     const userCollection = db.collection('user')
     const InterviewCollection = db.collection('interviews')
+    const BlogCollection = db.collection('Blogs')
 
 
 
