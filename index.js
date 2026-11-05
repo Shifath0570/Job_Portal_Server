@@ -1151,15 +1151,13 @@ async function run() {
       try {
         const blogData = req.body;
 
-        // Validate required fields
         if (!blogData.title || !blogData.content) {
           return res.status(400).json({
             success: false,
-            message: "Article title and content are required."
+            message: "Title and content are required."
           });
         }
 
-        // Attach server-side timestamps
         const newBlog = {
           ...blogData,
           createdAt: new Date(),
@@ -1168,21 +1166,24 @@ async function run() {
 
         const result = await BlogCollection.insertOne(newBlog);
 
-        res.status(201).json({
+        return res.status(201).json({
           success: true,
-          message: "Blog post created successfully!",
+          message: "Blog created successfully!",
           insertedId: result.insertedId,
           data: newBlog
         });
       } catch (error) {
-        console.error("Error creating blog post:", error);
-        res.status(500).json({
+        console.error("Database error:", error);
+        return res.status(500).json({
           success: false,
-          message: "Failed to create blog post",
+          message: "Failed to create blog",
           error: error.message
         });
       }
     });
+
+
+
 
 
 
