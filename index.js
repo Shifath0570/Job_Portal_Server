@@ -1185,6 +1185,38 @@ async function run() {
 
 
 
+    app.get('/api/blogs/:email', async (req, res) => {
+      try {
+        const { email } = req.params;
+
+        if (!email) {
+          return res.status(400).send({
+            success: false,
+            message: "Email parameter is required",
+          });
+        }
+
+        // Find all blogs posted under authorEmail
+        const blogs = await BlogCollection.find({ authorEmail: email }).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: blogs.length,
+          data: blogs,
+        });
+      } catch (error) {
+        console.error("GET User Blogs Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching blogs",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
 
 
 
