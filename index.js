@@ -1217,6 +1217,44 @@ async function run() {
 
 
 
+    app.get('/api/blogs', async (req, res) => {
+      try {
+        const { status, category, search } = req.query;
+        const query = {};
+
+        if (status) query.status = status;
+        if (category && category !== "All") query.category = category;
+
+        // Add case-insensitive search filter for title or content
+        if (search) {
+          query.$or = [
+            { title: { $regex: search, $options: "i" } },
+            { content: { $regex: search, $options: "i" } }
+          ];
+        }
+
+        // Fetch matching blogs, sorted by newest first
+        const blogs = await BlogCollection.find(query).sort({ createdAt: -1 }).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: blogs.length,
+          blogs: blogs, // Matching the frontend expectation (result.blogs)
+          data: blogs,
+        });
+      } catch (error) {
+        console.error("GET All Blogs Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching all blogs",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
 
 
 
