@@ -179,6 +179,43 @@ async function run() {
 
 
 
+    app.get('/api/jobs/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        // Build query to support both MongoDB ObjectId and string identifiers if needed
+        let query = { id: id };
+
+        if (ObjectId.isValid(id)) {
+          query = { $or: [{ _id: new ObjectId(id) }, { id: id }] };
+        }
+
+        const job = await jobCollection.findOne(query);
+
+        if (!job) {
+          return res.status(404).send({
+            success: false,
+            message: "Job opening not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          data: job,
+        });
+      } catch (error) {
+        console.error("GET Job by ID Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to fetch job details",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
 
     app.delete('/api/jobs/:id', async (req, res) => {
       try {
