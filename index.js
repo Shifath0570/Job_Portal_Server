@@ -377,6 +377,44 @@ async function run() {
     });
 
 
+
+
+
+    app.get('/api/company/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        let query = { identifier: id };
+        if (ObjectId.isValid(id)) {
+          query = { $or: [{ _id: new ObjectId(id) }] };
+        }
+
+        const company = await companyCollection.findOne(query);
+
+        if (!company) {
+          return res.status(404).send({
+            success: false,
+            message: "Company not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          data: company,
+        });
+      } catch (error) {
+        console.error("GET Company Details Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching company details",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
     app.get('/api/company/profile/:email', async (req, res) => {
       try {
         const { email } = req.params;
