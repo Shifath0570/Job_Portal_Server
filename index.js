@@ -369,7 +369,7 @@ async function run() {
         });
       }
     });
-    
+
 
 
     app.get('/api/company/all', async (req, res) => {
@@ -1320,6 +1320,45 @@ async function run() {
         res.status(500).send({
           success: false,
           message: "Error fetching all blogs",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+    app.delete('/api/blogs/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        if (!id) {
+          return res.status(400).send({
+            success: false,
+            message: "Blog ID parameter is required",
+          });
+        }
+
+        const query = { _id: id }; // Change to { _id: new ObjectId(id) } if using ObjectId
+
+        const result = await BlogCollection.deleteOne(query);
+
+        if (result.deletedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "Blog not found",
+          });
+        }
+
+        res.status(200).send({
+          success: true,
+          message: "Blog deleted successfully",
+          deletedId: id,
+        });
+      } catch (error) {
+        console.error("DELETE Blog Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error deleting blog",
           error: error.message,
         });
       }
