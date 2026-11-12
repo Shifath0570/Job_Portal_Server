@@ -1338,7 +1338,16 @@ async function run() {
           });
         }
 
-        const query = { _id: id }; // Change to { _id: new ObjectId(id) } if using ObjectId
+        // Validate if the incoming ID is a valid 24-character hex MongoDB ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({
+            success: false,
+            message: "Invalid blog ID format",
+          });
+        }
+
+        // Query using MongoDB ObjectId
+        const query = { _id: new ObjectId(id) };
 
         const result = await BlogCollection.deleteOne(query);
 
