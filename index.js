@@ -164,6 +164,44 @@ async function run() {
 
 
 
+
+     app.get('/api/jobs/:status', async (req, res) => {
+      try {
+        const { status } = req.params;
+
+        if (!status) {
+          return res.status(400).send({
+            success: false,
+            message: "Status parameter is required",
+          });
+        }
+
+        const query = {};
+
+        if (status.toLowerCase() !== "all") {
+          query.status = { $regex: new RegExp(`^${status}$`, "i") };
+        }
+
+        const jobs = await jobCollection.find(query).toArray();
+
+        res.status(200).send({
+          success: true,
+          count: jobs.length,
+          jobs,
+        });
+      } catch (error) {
+        console.error("GET Company Jobs Error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Error fetching company jobs",
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
     app.get('/api/jobs', async (req, res) => {
       try {
         const jobs = await jobCollection.find().toArray();
@@ -217,6 +255,8 @@ async function run() {
 
 
 
+
+
     app.delete('/api/jobs/:id', async (req, res) => {
       try {
         const { id } = req.params;
@@ -258,39 +298,7 @@ async function run() {
 
 
 
-    app.get('/api/jobs/:status', async (req, res) => {
-      try {
-        const { status } = req.params;
 
-        if (!status) {
-          return res.status(400).send({
-            success: false,
-            message: "Status parameter is required",
-          });
-        }
-
-        const query = {};
-
-        if (status.toLowerCase() !== "all") {
-          query.status = { $regex: new RegExp(`^${status}$`, "i") };
-        }
-
-        const jobs = await jobCollection.find(query).toArray();
-
-        res.status(200).send({
-          success: true,
-          count: jobs.length,
-          jobs,
-        });
-      } catch (error) {
-        console.error("GET Company Jobs Error:", error);
-        res.status(500).send({
-          success: false,
-          message: "Error fetching company jobs",
-          error: error.message,
-        });
-      }
-    });
 
 
     app.patch('/api/jobs/:id/status', async (req, res) => {
